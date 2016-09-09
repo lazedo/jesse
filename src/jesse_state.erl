@@ -195,7 +195,8 @@ resolve_reference(State, Reference) ->
           jesse_error:handle_schema_invalid(?schema_invalid, State);
         RemoteSchema ->
           %% Set the new root schema
-          NewState = State#state{root_schema = RemoteSchema, id = BaseURI},
+          SchemaVersion = jesse_json_path:value(?SCHEMA, RemoteSchema, ?default_schema_ver),
+          NewState = State#state{root_schema = RemoteSchema, id = BaseURI, default_schema_ver = SchemaVersion},
           %% Retrive the part we want
           Path = case MaybePointer of
                    [] ->
