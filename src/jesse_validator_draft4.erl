@@ -1071,8 +1071,14 @@ check_all_of(_Value, _InvalidSchemas, State) ->
 check_all_of_(_Value, [], State) ->
     State;
 check_all_of_(Value, [Schema | Schemas], State) ->
-  case validate_schema(Value, Schema, State) of
-    {true, NewState} -> check_all_of_(Value, Schemas, NewState);
+  case validate_schema(Value, Schema, jesse_state:set_error_list(State, [])) of
+    {true, NewState} ->
+        case jesse_state:get_error_list(NewState) of
+            [] -> check_all_of_(Value, Schemas, NewState);
+            NewErrors  ->
+                Errors = jesse_state:get_error_list(State) ++ NewErrors, 
+                check_all_of_(Value, Schemas, jesse_state:set_error_list(State, Errors))
+        end;
     {false, _} -> handle_data_invalid(?all_schemas_not_valid, Value, State)
   end.
 
@@ -1100,11 +1106,13 @@ check_any_of(_Value, _InvalidSchemas, State) ->
 check_any_of_(Value, [], State) ->
   handle_data_invalid(?any_schemas_not_valid, Value, State);
 check_any_of_(Value, [Schema | Schemas], State) ->
-  case validate_schema(Value, Schema, State) of
+  case validate_schema(Value, Schema, jesse_state:set_error_list(State, [])) of
     {true, NewState} ->
         case jesse_state:get_error_list(NewState) of
             [] -> NewState;
-            _  -> check_any_of_(Value, Schemas, State)
+            NewErrors  ->
+                Errors = jesse_state:get_error_list(State) ++ NewErrors, 
+                check_any_of_(Value, Schemas, jesse_state:set_error_list(State, Errors))
         end;
     {false, _} -> check_any_of_(Value, Schemas, State)
   end.
@@ -1137,11 +1145,13 @@ check_one_of_(Value, [], State, 0) ->
 check_one_of_(Value, _Schemas, State, Valid) when Valid > 1 ->
   handle_data_invalid(?not_one_schema_valid, Value, State);
 check_one_of_(Value, [Schema | Schemas], State, Valid) ->
-  case validate_schema(Value, Schema, State) of
+  case validate_schema(Value, Schema, jesse_state:set_error_list(State, [])) of
     {true, NewState} ->
         case jesse_state:get_error_list(NewState) of
             [] -> check_one_of_(Value, Schemas, NewState, Valid + 1);
-            _  -> check_one_of_(Value, Schemas, State, Valid)
+            NewErrors  ->
+                Errors = jesse_state:get_error_list(State) ++ NewErrors, 
+                check_one_of_(Value, Schemas, jesse_state:set_error_list(State, Errors), Valid)
         end;
     {false, _} ->
       check_one_of_(Value, Schemas, State, Valid)
