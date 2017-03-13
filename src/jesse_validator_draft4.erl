@@ -1382,9 +1382,8 @@ set_value(PropertyName, Value, State) ->
 %% @private
 check_default(PropertyName, PropertySchema, Default, State) ->
     Type = get_value(?TYPE, PropertySchema, ?not_found),
-    Schema = jesse_state:get_current_schema(State),
     case Type =/= ?not_found
-         andalso Schema =/= PropertySchema
+         andalso lists:member(Type, ?types_for_defaults)
          andalso is_type_valid(Default, Type) of
         false -> State;
         true -> set_default(PropertyName, PropertySchema, Default, State)
@@ -1394,8 +1393,7 @@ check_default(PropertyName, PropertySchema, Default, State) ->
 set_default(PropertyName, PropertySchema, Default, State) ->
     State1 = set_value(PropertyName, Default, State),
     State2 = add_to_path(State1, PropertyName),
-    Schema = jesse_state:get_current_schema(State2),
-    case Schema =/= PropertySchema andalso validate_schema(Default, PropertySchema, State2) of
+    case validate_schema(Default, PropertySchema, State2) of
         {true, State4} -> jesse_state:remove_last_from_path(State4);
         _ -> State
     end.
