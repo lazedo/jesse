@@ -1059,8 +1059,9 @@ set_value(PropertyName, Value, State) ->
 %% @private
 check_default(PropertyName, PropertySchema, Default, State) ->
     Type = get_value(?TYPE, PropertySchema, ?not_found),
+    Schema = jesse_state:get_current_schema(State),
     case Type =/= ?not_found
-         andalso lists:member(Type, ?types_for_defaults)
+         andalso Schema =/= PropertySchema
          andalso is_type_valid(Default, Type, State) of
         false -> State;
         true -> set_default(PropertyName, PropertySchema, Default, State)
