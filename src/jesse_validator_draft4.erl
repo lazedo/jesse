@@ -91,7 +91,7 @@ check_value(Value, [{?PROPERTIES, Properties} | Attrs], State) ->
                                         );
                false -> State
              end,
-  check_value(Value, Attrs, NewState);
+  check_value(Attrs, NewState);
 check_value( Value
            , [{?PATTERNPROPERTIES, PatternProperties} | Attrs]
            , State
@@ -103,7 +103,7 @@ check_value( Value
                                                 );
                false -> State
              end,
-  check_value(Value, Attrs, NewState);
+  check_value(Attrs, NewState);
 check_value( Value
            , [{?ADDITIONALPROPERTIES, AdditionalProperties} | Attrs]
            , State
@@ -224,7 +224,7 @@ check_value(Value, [{?MULTIPLEOF, Multiple} | Attrs], State) ->
                true  -> check_multiple_of(Value, Multiple, State);
                false -> State
              end,
-  check_value(Value, Attrs, NewState);
+  check_value(Attrs, NewState);
 check_value(Value, [{?MAXPROPERTIES, MaxProperties} | Attrs], State) ->
   NewState = case jesse_lib:is_json_object(Value) of
                true  -> check_max_properties(Value, MaxProperties, State);
@@ -239,13 +239,13 @@ check_value(Value, [{?MINPROPERTIES, MinProperties} | Attrs], State) ->
   check_value(Value, Attrs, NewState);
 check_value(Value, [{?ALLOF, Schemas} | Attrs], State) ->
   NewState = check_all_of(Value, Schemas, State),
-  check_value(Value, Attrs, NewState);
+  check_value(Attrs, NewState);
 check_value(Value, [{?ANYOF, Schemas} | Attrs], State) ->
   NewState = check_any_of(Value, Schemas, State),
-  check_value(Value, Attrs, NewState);
+  check_value(Attrs, NewState);
 check_value(Value, [{?ONEOF, Schemas} | Attrs], State) ->
   NewState = check_one_of(Value, Schemas, State),
-  check_value(Value, Attrs, NewState);
+  check_value(Attrs, NewState);
 check_value(Value, [{?NOT, Schema} | Attrs], State) ->
   NewState = check_not(Value, Schema, State),
   check_value(Value, Attrs, NewState);
@@ -255,6 +255,12 @@ check_value(Value, [_Attr | Attrs], State) ->
   check_value(Value, Attrs, State).
 
 %%% Internal functions
+%% @doc Continues validation with updated value
+%% @private
+check_value(Attrs, State) ->
+  V = jesse_state:get_current_path_value(State),
+  check_value(V, Attrs, State).
+
 %% @doc Adds Property to the current path and checks the value
 %% using jesse_schema_validator:validate_with_state/3.
 %% @private
