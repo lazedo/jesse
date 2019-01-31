@@ -1189,7 +1189,9 @@ check_any_of_(Value, [Schema | Schemas], State) ->
 %%
 %% @private
 check_one_of(Value, [_ | _] = Schemas, State) ->
-  check_one_of_(Value, Schemas, State, 0);
+  Errors = jesse_state:get_error_list(State),
+  NewState = check_one_of_(Value, Schemas, jesse_state:set_error_list(State, []), 0),
+  jesse_state:set_error_list(NewState, Errors ++ jesse_state:get_error_list(NewState));
 check_one_of(_Value, _InvalidSchemas, State) ->
   handle_schema_invalid(?wrong_one_of_schema_array, State).
 
@@ -1242,7 +1244,7 @@ validate_schema(Value, Schema, State0) ->
                                                            , Value
                                                            , State1
                                                            ),
-        {true, State2};
+        {true, set_current_schema(State2, get_current_schema(State0))};
       false ->
         handle_schema_invalid(?schema_invalid, State0)
     end
