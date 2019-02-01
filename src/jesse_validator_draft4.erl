@@ -1196,11 +1196,11 @@ check_one_of(_Value, _InvalidSchemas, State) ->
   handle_schema_invalid(?wrong_one_of_schema_array, State).
 
 check_one_of_(_Value, [], State, 1) ->
-  State;
+  jesse_state:set_error_list(State, []);
 check_one_of_(Value, [], State, 0) ->
-  handle_data_invalid(?not_one_schema_valid, Value, State);
+  handle_data_invalid(?not_one_schema_valid, Value, jesse_state:set_error_list(State, []));
 check_one_of_(Value, _Schemas, State, Valid) when Valid > 1 ->
-  handle_data_invalid(?not_one_schema_valid, Value, State);
+  handle_data_invalid(?not_one_schema_valid, Value, jesse_state:set_error_list(State, []));
 check_one_of_(Value, [Schema | Schemas], State, Valid) ->
   case validate_schema(Value, Schema, State) of
     {true, NewState} ->
